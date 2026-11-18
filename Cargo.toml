@@ -1,0 +1,14 @@
+[package]
+name = "potoo-kumir-interpreter"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/diegopn/potoo-kumir-interpreter"
+homepage = "https://diegopn.github.io/potoo-site/manual/kumir/"
+readme = "README.md"
+description = "An evaluation scaffold for an independent Rust package concerning the Kumir educational programming system."
+
+[lib]
+name = "potoo_kumir_interpreter"
+path = "src/lib.rs"
