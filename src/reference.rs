@@ -1882,27 +1882,45 @@ fn parse_algorithm_header(
     }
     let mut parameters = Vec::new();
     if let Some(parameter_text) = parameter_text {
+        let mut current_mode = ParameterMode::Argument;
+        let mut current_type = None;
         for item in split_top_level(parameter_text, ',') {
             let item = item.trim();
             if item.is_empty() {
                 continue;
             }
             let (mode, typed) = if starts_keyword(item, "аргрез") {
-                (ParameterMode::ArgumentResult, item["аргрез".len()..].trim())
+                (
+                    Some(ParameterMode::ArgumentResult),
+                    item["аргрез".len()..].trim(),
+                )
             } else if starts_keyword(item, "арг рез") {
                 (
-                    ParameterMode::ArgumentResult,
+                    Some(ParameterMode::ArgumentResult),
                     item["арг рез".len()..].trim(),
                 )
             } else if starts_keyword(item, "арг") {
-                (ParameterMode::Argument, item["арг".len()..].trim())
+                (Some(ParameterMode::Argument), item["арг".len()..].trim())
             } else if starts_keyword(item, "рез") {
-                (ParameterMode::Result, item["рез".len()..].trim())
+                (Some(ParameterMode::Result), item["рез".len()..].trim())
             } else {
-                (ParameterMode::Argument, item)
+                (None, item)
             };
-            let (ty, names) = take_type_prefix(typed)
-                .ok_or_else(|| error(span, format!("parameter `{item}` needs a declared type")))?;
+            if let Some(mode) = mode {
+                current_mode = mode;
+                current_type = None;
+            }
+            let (ty, names) = if let Some((ty, names)) = take_type_prefix(typed) {
+                current_type = Some(ty.clone());
+                (ty, names)
+            } else if let Some(ty) = current_type.clone() {
+                (ty, typed)
+            } else {
+                return Err(error(
+                    span,
+                    format!("parameter `{item}` needs a declared type"),
+                ));
+            };
             for name in split_names(names) {
                 if !valid_name(name) {
                     return Err(error(span, format!("invalid parameter name `{name}`")));
@@ -1910,7 +1928,7 @@ fn parse_algorithm_header(
                 parameters.push(Parameter {
                     name: normalize(name),
                     ty: ty.clone(),
-                    mode,
+                    mode: current_mode,
                 });
             }
         }
