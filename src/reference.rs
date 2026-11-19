@@ -1910,18 +1910,27 @@ fn parse_algorithm_header(
                 current_mode = mode;
                 current_type = None;
             }
-            let (ty, names) = if let Some((ty, names)) = take_type_prefix(typed) {
-                current_type = Some(ty.clone());
-                (ty, names)
+            let (ty, names, explicit_type) = if let Some((ty, names)) = take_type_prefix(typed) {
+                (ty, names, true)
             } else if let Some(ty) = current_type.clone() {
-                (ty, typed)
+                (ty, typed, false)
             } else {
                 return Err(error(
                     span,
                     format!("parameter `{item}` needs a declared type"),
                 ));
             };
-            for name in split_names(names) {
+            let names = split_names(names);
+            if names.is_empty() {
+                return Err(error(
+                    span,
+                    format!("parameter group `{item}` needs at least one name"),
+                ));
+            }
+            if explicit_type {
+                current_type = Some(ty.clone());
+            }
+            for name in names {
                 if !valid_name(name) {
                     return Err(error(span, format!("invalid parameter name `{name}`")));
                 }

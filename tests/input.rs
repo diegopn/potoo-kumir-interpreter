@@ -90,3 +90,44 @@ fn a_new_parameter_mode_requires_a_new_type() {
         "unexpected diagnostic: {messages}"
     );
 }
+
+#[test]
+fn a_typed_parameter_group_requires_at_least_one_name() {
+    let source = "алг\nнач\nкон\nалг f (вещ, b)\nнач\nкон";
+    let diagnostics = parse_with_profile(source, Profile::Classic)
+        .expect_err("a type-only parameter group should be rejected");
+    let messages = diagnostics
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    assert!(
+        messages.contains("parameter group `вещ` needs at least one name"),
+        "unexpected diagnostic: {messages}"
+    );
+}
+
+#[test]
+fn result_mode_persists_across_a_later_type_group() {
+    let source = r#"алг
+нач
+  цел x, y
+  лит message
+  вещ input
+  x := 0
+  y := 0
+  message := ""
+  input := 2.5
+  test(x, y, message, input)
+  вывод x, ":", y, ":", message, ":", input
+кон
+алг test (рез цел m, n, лит t, арг вещ source)
+нач
+  m := 1
+  n := 2
+  t := "ok"
+кон"#;
+
+    assert_eq!(execute_and_capture_output(source), "1:2:ok:2.5");
+}
