@@ -7,8 +7,12 @@ license = "GPL-3.0-or-later"
 repository = "https://github.com/diegopn/potoo-kumir-interpreter"
 homepage = "https://diegopn.github.io/potoo-site/manual/kumir/"
 readme = "README.md"
-description = "An evaluation scaffold for an independent Rust package concerning the Kumir educational programming system."
+description = "A host-driven interpreter for a documented subset of the Kumir 2 school algorithmic language."
 
 [lib]
 name = "potoo_kumir_interpreter"
 path = "src/lib.rs"
+
+[[bin]]
+name = "potoo-kumir"
+path = "src/bin/potoo-kumir.rs"

@@ -8,6 +8,12 @@ After arranging a private channel, include the affected commit, Rust version, op
 
 For other project concerns, see [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
-## Current scope
+## Runtime scope
 
-This repository contains only a minimal Rust crate scaffold. It does not parse or execute Kumir source and has no language runtime or sandbox. This policy must be updated before source execution is introduced.
+This crate parses and executes source using the Kumir 2.1.0-rc11 classic or high-grade profile. It does not provide an operating-system sandbox. Programs can consume CPU through loops and recursion, and can request file or executor actions through host services.
+
+The interpreter applies a one-million-statement execution limit, a recursion-depth limit of 1,024, and a one-million-element limit for tables. These limits reduce some resource-exhaustion risks; they do not bound source size, all temporary allocations, time spent in a host callback, or memory used by an embedding application.
+
+The interpreter has no direct filesystem or GUI access. An embedding application that supplies `FileHost` decides which paths, encodings, handles, and operations are allowed. A `ModuleHost` can perform actor, drawing, keyboard, or other environment actions and must enforce any application-specific restrictions. File and module hosts should treat source programs as untrusted input and validate every requested operation.
+
+The bundled command-line host connects standard input and output only. It does not install a file or module host, so source programs requiring those capabilities stop with a runtime error.
