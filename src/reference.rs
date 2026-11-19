@@ -5166,10 +5166,19 @@ impl<H: Host> Interpreter<H> {
                 }
                 Stmt::Input { targets, span } => {
                     let explicit_file = match targets.first() {
-                        Some(InputPart::Target(target)) => {
+                        Some(InputPart::Target(target))
+                            if self
+                                .target_type(target, algorithm, variables, program, *span)?
+                                == Type::File =>
+                        {
                             match self.evaluate(target, variables, program, *span)? {
                                 Value::File(handle) => Some(Value::File(handle)),
-                                _ => None,
+                                _ => {
+                                    return Err(runtime_error(
+                                        *span,
+                                        "file input target does not contain an open file",
+                                    ));
+                                }
                             }
                         }
                         _ => None,
